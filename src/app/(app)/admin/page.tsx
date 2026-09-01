@@ -11,6 +11,7 @@ interface UserWithPlan {
   plan: string;
   status: string;
   created_at: string;
+  expires_at: string | null;
 }
 
 let _s: any = null;
@@ -51,13 +52,42 @@ export default function AdminPage() {
     loadUsers();
   };
 
+  const renewPlan = async (userId: string) => {
+    const supabase = await getS();
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 30);
+    await supabase.from("subscriptions").update({ status: "activo", expires_at: expires.toISOString() }).eq("user_id", userId);
+    loadUsers();
+  };
+
+  const approvePayment = async (userId: string) => {
+    const supabase = await getS();
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 30);
+    await supabase.from("subscriptions").update({ status: "activo", expires_at: expires.toISOString() }).eq("user_id", userId);
+    loadUsers();
+  };
+
+  const deactivateUser = async (userId: string) => {
+    if (!confirm("¿Desactivar este usuario? No podrá usar la app.")) return;
+    const supabase = await getS();
+    await supabase.from("subscriptions").update({ status: "inactivo" }).eq("user_id", userId);
+    loadUsers();
+  };
+
   if (!isAdmin) return null;
 
   const plans = [
-    { id: "gratis", label: "Gratis", color: "bg-gray-100 text-gray-700" },
-    { id: "basico", label: "Básico", color: "bg-blue-100 text-blue-700" },
-    { id: "premium", label: "Premium", color: "bg-purple-100 text-purple-700" },
+    { id: "basico", label: "Básico", price: 500, color: "bg-blue-100 text-blue-700" },
+    { id: "estandar", label: "Estándar", price: 800, color: "bg-purple-100 text-purple-700" },
+    { id: "premium", label: "Premium", price: 1200, color: "bg-amber-100 text-amber-700" },
   ];
+
+  const activePaid = users.filter((u) => u.status === "activo" || u.status === "trial");
+  const revenue = users.reduce((sum, u) => {
+    if (u.status === "inactivo") return sum;
+    return sum + (u.plan === "basico" ? 500 : u.plan === "estandar" ? 800 : u.plan === "premium" ? 1200 : 0);
+  }, 0);
 
   return (
     <div className="space-y-6">
@@ -73,13 +103,11 @@ export default function AdminPage() {
         </div>
         <div className="bg-white border border-gray-200 rounded-xl p-5">
           <p className="text-xs text-gray-400 mb-1">Planes activos</p>
-          <p className="text-2xl font-extrabold text-blue-600">{users.filter((u) => u.plan !== "gratis").length}</p>
+          <p className="text-2xl font-extrabold text-blue-600">{activePaid.length}</p>
         </div>
         <div className="bg-white border border-gray-200 rounded-xl p-5">
           <p className="text-xs text-gray-400 mb-1">Ingresos mensuales</p>
-          <p className="text-2xl font-extrabold text-green-600">
-            RD${users.reduce((sum, u) => sum + (u.plan === "basico" ? 1000 : u.plan === "premium" ? 1600 : 0), 0).toLocaleString()}
-          </p>
+          <p className="text-2xl font-extrabold text-green-600">RD${revenue.toLocaleString()}</p>
         </div>
       </div>
 
@@ -94,51 +122,81 @@ export default function AdminPage() {
                 <th className="px-5 py-3">Email</th>
                 <th className="px-5 py-3">Plan</th>
                 <th className="px-5 py-3">Estado</th>
-                <th className="px-5 py-3">Registro</th>
+                <th className="px-5 py-3">Expira</th>
                 <th className="px-5 py-3">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => (
-                <tr key={u.user_id} className="border-t border-gray-100">
-                  <td className="px-5 py-3 font-semibold">{u.email}</td>
-                  <td className="px-5 py-3">
-                    {editingUser === u.user_id ? (
-                      <div className="flex gap-2">
-                        {plans.map((p) => (
-                          <button
-                            key={p.id}
-                            onClick={() => updatePlan(u.user_id, p.id)}
-                            className={`px-3 py-1 rounded text-xs font-semibold ${p.color} hover:opacity-80`}
-                          >
-                            {p.label}
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
+              {users.map((u) => {
+                const expiresAt = u.expires_at ? new Date(u.expires_at) : null;
+                const daysLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0;
+                return (
+                  <tr key={u.user_id} className="border-t border-gray-100">
+                    <td className="px-5 py-3 font-semibold">{u.email}</td>
+                    <td className="px-5 py-3">
+                      {editingUser === u.user_id ? (
+                        <div className="flex gap-1 flex-wrap">
+                          {plans.map((p) => (
+                            <button
+                              key={p.id}
+                              onClick={() => updatePlan(u.user_id, p.id)}
+                              className={`px-2 py-1 rounded text-[10px] font-semibold ${p.color} hover:opacity-80`}
+                            >
+                              {p.label}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
+                          u.plan === "premium" ? "bg-amber-100 text-amber-700" :
+                          u.plan === "estandar" ? "bg-purple-100 text-purple-700" :
+                          "bg-blue-100 text-blue-700"
+                        }`}>
+                          {u.plan === "estandar" ? "Estándar" : u.plan === "premium" ? "Premium" : "Básico"}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-3">
                       <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
-                        u.plan === "premium" ? "bg-purple-100 text-purple-700" :
-                        u.plan === "basico" ? "bg-blue-100 text-blue-700" :
-                        "bg-gray-100 text-gray-500"
-                      }`}>
-                        {u.plan === "basico" ? "Básico" : u.plan === "premium" ? "Premium" : "Gratis"}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-5 py-3">
-                    <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-green-100 text-green-700">{u.status}</span>
-                  </td>
-                  <td className="px-5 py-3 text-gray-400 text-xs">{new Date(u.created_at).toLocaleDateString("es-DO")}</td>
-                  <td className="px-5 py-3">
-                    <button
-                      onClick={() => setEditingUser(editingUser === u.user_id ? null : u.user_id)}
-                      className="px-3 py-1.5 bg-teal-600 text-white text-xs font-semibold rounded-lg hover:bg-teal-700"
-                    >
-                      {editingUser === u.user_id ? "Cancelar" : "Cambiar plan"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                        u.status === "activo" ? "bg-green-100 text-green-700" :
+                        u.status === "trial" ? "bg-blue-100 text-blue-700" :
+                        "bg-red-100 text-red-700"
+                      }`}>{u.status}</span>
+                    </td>
+                    <td className="px-5 py-3 text-xs">
+                      {expiresAt ? (
+                        <span className={daysLeft <= 7 ? "text-red-500 font-bold" : "text-gray-500"}>
+                          {expiresAt.toLocaleDateString("es-DO")} ({daysLeft}d)
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex gap-1 flex-wrap">
+                        <button
+                          onClick={() => setEditingUser(editingUser === u.user_id ? null : u.user_id)}
+                          className="px-2 py-1 bg-teal-600 text-white text-[10px] font-semibold rounded hover:bg-teal-700"
+                        >
+                          {editingUser === u.user_id ? "Cancelar" : "Plan"}
+                        </button>
+                        <button
+                          onClick={() => renewPlan(u.user_id)}
+                          className="px-2 py-1 bg-green-600 text-white text-[10px] font-semibold rounded hover:bg-green-700"
+                        >
+                          +30 días
+                        </button>
+                        <button
+                          onClick={() => deactivateUser(u.user_id)}
+                          className="px-2 py-1 bg-red-500 text-white text-[10px] font-semibold rounded hover:bg-red-600"
+                        >
+                          Desactivar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
               {users.length === 0 && !loading && (
                 <tr><td colSpan={5} className="px-5 py-12 text-center text-gray-400">Sin usuarios</td></tr>
               )}

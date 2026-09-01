@@ -27,7 +27,14 @@ export default function LoginPage() {
         return;
       }
       if (data.user) {
-        await supabase.from("subscriptions").insert({ user_id: data.user.id, plan: "gratis", status: "activo" });
+        const expires = new Date();
+        expires.setDate(expires.getDate() + 30);
+        await supabase.from("subscriptions").insert({
+          user_id: data.user.id,
+          plan: "basico",
+          status: "trial",
+          expires_at: expires.toISOString(),
+        });
       }
       router.replace("/dashboard");
     } else {

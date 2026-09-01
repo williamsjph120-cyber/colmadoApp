@@ -50,7 +50,7 @@ export interface Credit {
 export interface Subscription {
   id: string;
   user_id: string;
-  plan: "gratis" | "basico" | "premium";
+  plan: "basico" | "estandar" | "premium";
   status: string;
   expires_at: string | null;
   created_at: string;
@@ -75,10 +75,10 @@ export interface CartItem {
   qty: number;
 }
 
-export type PlanType = "gratis" | "basico" | "premium";
+export type PlanType = "basico" | "estandar" | "premium";
 
 export const PLAN_LIMITS: Record<PlanType, { maxProducts: number; price: number; label: string }> = {
-  gratis: { maxProducts: 50, price: 0, label: "Gratis" },
-  basico: { maxProducts: -1, price: 1000, label: "Básico" },
-  premium: { maxProducts: -1, price: 1600, label: "Premium" },
+  basico: { maxProducts: -1, price: 500, label: "Básico" },
+  estandar: { maxProducts: -1, price: 800, label: "Estándar" },
+  premium: { maxProducts: -1, price: 1200, label: "Premium" },
 };

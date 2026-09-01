@@ -182,7 +182,7 @@ export default function POSPage() {
               <div className="text-3xl mb-2">{p.emoji}</div>
               <div className="text-xs font-semibold mb-1">{p.name}</div>
               <div className="text-base font-extrabold text-teal-700">{formatCurrency(p.price)}</div>
-              <div className="text-[10px] text-gray-400">Stock: {p.stock}</div>
+              <div className="text-[10px] text-gray-400">Stock: {p.stock}{p.unit ? ` ${p.unit}` : ""}</div>
             </button>
           ))}
         </div>

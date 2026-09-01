@@ -4,6 +4,7 @@ export interface Product {
   name: string;
   category: string;
   emoji: string;
+  unit: string;
   price: number;
   stock: number;
   min_stock: number;

@@ -24,7 +24,6 @@ const UNITS = [
   { id: "unidad", label: "Unidad", short: "und" },
   { id: "litro", label: "Litro", short: "L" },
   { id: "onzas", label: "Onzas", short: "oz" },
-  { id: "kilogramo", label: "Kilogramo", short: "kg" },
   { id: "libra", label: "Libra", short: "lb" },
   { id: "paquete", label: "Paquete", short: "pqte" },
   { id: "caja", label: "Caja", short: "cj" },

@@ -15,6 +15,10 @@ export default function POSPage() {
   const [category, setCategory] = useState("todos");
   const [receiptStage, setReceiptStage] = useState<"idle" | "processing" | "printing" | "complete">("idle");
   const [lastSaleTotal, setLastSaleTotal] = useState(0);
+  const [lastCart, setLastCart] = useState<CartItem[]>([]);
+  const [lastSubtotal, setLastSubtotal] = useState(0);
+  const [lastTax, setLastTax] = useState(0);
+  const [lastMethod, setLastMethod] = useState("");
   const [clientModal, setClientModal] = useState(false);
   const [clientName, setClientName] = useState("");
   const [clientConcept, setClientConcept] = useState("");
@@ -115,6 +119,10 @@ export default function POSPage() {
     }
 
     setLastSaleTotal(total);
+    setLastCart([...cart]);
+    setLastSubtotal(subtotal);
+    setLastTax(tax);
+    setLastMethod(method);
     setCart([]);
     setReceiptStage("processing");
 
@@ -229,13 +237,53 @@ export default function POSPage() {
               </ReceiptPrinter.Header>
               <ReceiptPrinter.Paper>
                 <ReceiptPrinter.Output>
-                  <div className="text-center space-y-3 py-4">
-                    <div className="text-2xl font-bold">ColmadoApp</div>
-                    <div className="text-xs text-gray-500">---</div>
-                    <div className="text-xs">Venta completada</div>
-                    <div className="text-xl font-bold text-teal-700">{formatCurrency(lastSaleTotal)}</div>
-                    <div className="text-xs text-gray-500">Gracias por su compra</div>
-                    <div className="text-[10px] text-gray-400 mt-4">{new Date().toLocaleString("es-DO")}</div>
+                  <div className="py-4 text-xs space-y-3">
+                    <div className="text-center space-y-1">
+                      <div className="text-lg font-black tracking-wide">ColmadoApp</div>
+                      <div className="text-[10px] text-gray-400">Tu colmado de confianza</div>
+                      <div className="border-t border-dashed border-gray-300 my-2" />
+                    </div>
+
+                    <div className="text-center text-[10px] text-gray-500">
+                      <div>Recibo de Venta</div>
+                      <div>{new Date().toLocaleDateString("es-DO", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</div>
+                      <div>{new Date().toLocaleTimeString("es-DO")}</div>
+                    </div>
+
+                    <div className="border-t border-dashed border-gray-300" />
+
+                    <div className="space-y-1.5">
+                      <div className="font-bold text-[10px] text-gray-400 uppercase">Productos</div>
+                      {lastCart.map((item, i) => (
+                        <div key={i} className="flex justify-between">
+                          <span className="truncate flex-1">{item.emoji} {item.name} x{item.qty}</span>
+                          <span className="font-semibold ml-2">{formatCurrency(item.price * item.qty)}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="border-t border-dashed border-gray-300" />
+
+                    <div className="space-y-1">
+                      <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>{formatCurrency(lastSubtotal)}</span></div>
+                      <div className="flex justify-between"><span className="text-gray-500">ITBIS (18%)</span><span>{formatCurrency(lastTax)}</span></div>
+                    </div>
+
+                    <div className="border-t-2 border-gray-800 pt-2">
+                      <div className="flex justify-between text-base font-black"><span>TOTAL</span><span>{formatCurrency(lastSaleTotal)}</span></div>
+                    </div>
+
+                    <div className="border-t border-dashed border-gray-300 pt-2">
+                      <div className="flex justify-between text-[10px]">
+                        <span className="text-gray-500">Método de pago</span>
+                        <span className="font-semibold">{lastMethod === "efectivo" ? "💵 Efectivo" : lastMethod === "tarjeta" ? "💳 Tarjeta" : "📝 Crédito/Fiado"}</span>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-dashed border-gray-300 pt-3 text-center space-y-1">
+                      <div className="text-sm font-bold">¡Gracias por su compra!</div>
+                      <div className="text-[10px] text-gray-400">ColmadoApp — Gestiona tu colmado</div>
+                    </div>
                   </div>
                 </ReceiptPrinter.Output>
               </ReceiptPrinter.Paper>

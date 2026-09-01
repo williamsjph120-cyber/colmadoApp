@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/helpers";
+
+const ADMIN_EMAIL = "williamsjph120@gmail.com";
 
 const links = [
   { href: "/dashboard", icon: "📊", label: "Dashboard" },
@@ -15,6 +18,15 @@ const links = [
 
 export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    import("@/lib/supabase").then(({ getSupabase }) => {
+      getSupabase().auth.getUser().then(({ data: { user } }) => {
+        if (user?.email === ADMIN_EMAIL) setIsAdmin(true);
+      });
+    });
+  }, []);
 
   return (
     <aside className="w-64 bg-teal-700 text-white flex flex-col fixed top-0 left-0 h-full z-50">
@@ -85,6 +97,24 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           </Link>
         ))}
       </nav>
+
+      {isAdmin && (
+        <div className="p-3 border-t border-white/10">
+          <Link
+            href="/admin"
+            onClick={onNavigate}
+            className={cn(
+              "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition",
+              pathname === "/admin"
+                ? "bg-amber-500 text-white"
+                : "text-white/70 hover:bg-white/10 hover:text-white"
+            )}
+          >
+            <span className="text-base">⚙️</span>
+            Admin
+          </Link>
+        </div>
+      )}
 
       <div className="p-3 border-t border-white/10">
         <button

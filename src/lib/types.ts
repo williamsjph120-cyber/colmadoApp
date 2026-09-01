@@ -1,5 +1,6 @@
 export interface Product {
   id: string;
+  user_id: string;
   name: string;
   category: string;
   emoji: string;
@@ -11,6 +12,7 @@ export interface Product {
 
 export interface Sale {
   id: string;
+  user_id: string;
   date: string;
   subtotal: number;
   tax: number;
@@ -33,6 +35,7 @@ export interface SaleItem {
 
 export interface Credit {
   id: string;
+  user_id: string;
   client: string;
   amount: number;
   paid: number;

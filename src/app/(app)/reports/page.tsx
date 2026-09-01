@@ -6,6 +6,7 @@ import type { Sale, Credit, Product } from "@/lib/types";
 
 let _s: any = null;
 async function getS() { if (!_s) { const m = await import("@/lib/supabase"); _s = m.getSupabase(); } return _s; }
+async function getUserId() { const m = await import("@/lib/supabase"); return m.getCurrentUserId(); }
 
 export default function ReportsPage() {
   const [sales, setSales] = useState<Sale[]>([]);
@@ -13,17 +14,19 @@ export default function ReportsPage() {
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    getS().then((supabase) =>
-      Promise.all([
-        supabase.from("sales").select("*"),
-        supabase.from("credits").select("*"),
-        supabase.from("products").select("*"),
-      ]).then(([s, c, p]) => {
-        if (s.data) setSales(s.data);
-        if (c.data) setCredits(c.data);
-        if (p.data) setProducts(p.data);
-      })
-    );
+    getUserId().then((userId) => {
+      getS().then((supabase) =>
+        Promise.all([
+          supabase.from("sales").select("*").eq("user_id", userId),
+          supabase.from("credits").select("*").eq("user_id", userId),
+          supabase.from("products").select("*").eq("user_id", userId),
+        ]).then(([s, c, p]) => {
+          if (s.data) setSales(s.data);
+          if (c.data) setCredits(c.data);
+          if (p.data) setProducts(p.data);
+        })
+      );
+    });
   }, []);
 
   const days = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];

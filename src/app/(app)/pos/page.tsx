@@ -7,6 +7,7 @@ import { ReceiptPrinter } from "@/components/ReceiptPrinter/ReceiptPrinter";
 
 let _s: any = null;
 async function getS() { if (!_s) { const m = await import("@/lib/supabase"); _s = m.getSupabase(); } return _s; }
+async function getUserId() { const m = await import("@/lib/supabase"); return m.getCurrentUserId(); }
 
 export default function POSPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -17,11 +18,15 @@ export default function POSPage() {
   const [clientModal, setClientModal] = useState(false);
   const [clientName, setClientName] = useState("");
   const [clientConcept, setClientConcept] = useState("");
+  const [userId, setUserId] = useState("");
 
   useEffect(() => {
-    getS().then((supabase) => supabase.from("products").select("*").order("name").then(({ data }: any) => {
-      if (data) setProducts(data);
-    }));
+    getUserId().then((id) => {
+      setUserId(id);
+      getS().then((supabase) => supabase.from("products").select("*").eq("user_id", id).order("name").then(({ data }: any) => {
+        if (data) setProducts(data);
+      }));
+    });
   }, []);
 
   const categories = ["todos", ...Array.from(new Set(products.map((p) => p.category)))];
@@ -60,6 +65,7 @@ export default function POSPage() {
     const { data: saleData, error: saleError } = await supabase
       .from("sales")
       .insert({
+        user_id: userId,
         date: new Date().toISOString().slice(0, 10),
         subtotal,
         tax,
@@ -96,6 +102,7 @@ export default function POSPage() {
 
     if (method === "credito") {
       await supabase.from("credits").insert({
+        user_id: userId,
         client: clientNameVal,
         amount: total,
         paid: 0,
@@ -115,7 +122,7 @@ export default function POSPage() {
     setTimeout(() => setReceiptStage("complete"), 3500);
     setTimeout(() => setReceiptStage("idle"), 8000);
 
-    const { data: updated } = await supabase.from("products").select("*").order("name");
+    const { data: updated } = await supabase.from("products").select("*").eq("user_id", userId).order("name");
     if (updated) setProducts(updated);
   };
 

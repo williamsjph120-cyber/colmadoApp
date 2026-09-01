@@ -17,3 +17,10 @@ export function getSupabase(): SupabaseClient {
   client = createClient(url, key);
   return client;
 }
+
+export async function getCurrentUserId(): Promise<string> {
+  const supabase = getSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("No authenticated user");
+  return user.id;
+}

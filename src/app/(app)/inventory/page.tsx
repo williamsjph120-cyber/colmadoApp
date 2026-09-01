@@ -14,16 +14,22 @@ async function getS() {
   return _supabase;
 }
 
+async function getUserId() {
+  const m = await import("@/lib/supabase");
+  return m.getCurrentUserId();
+}
+
 export default function InventoryPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", category: "abarrotes", emoji: "📦", price: "", stock: "", min_stock: "5" });
+  const [userId, setUserId] = useState("");
 
-  const load = async () => { const supabase = await getS(); const { data } = await supabase.from("products").select("*").order("name"); if (data) setProducts(data); };
+  const load = async (uid?: string) => { const id = uid || userId; if (!id) return; const supabase = await getS(); const { data } = await supabase.from("products").select("*").eq("user_id", id).order("name"); if (data) setProducts(data); };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { getUserId().then((id) => { setUserId(id); load(id); }); }, []);
 
   const filtered = products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()) || p.category.includes(search.toLowerCase()));
 
@@ -38,7 +44,7 @@ export default function InventoryPage() {
   const save = async () => {
     if (!form.name) return;
     const supabase = await getS();
-    const data = { name: form.name, category: form.category, emoji: form.emoji || "📦", price: parseFloat(form.price) || 0, stock: parseInt(form.stock) || 0, min_stock: parseInt(form.min_stock) || 5 };
+    const data = { user_id: userId, name: form.name, category: form.category, emoji: form.emoji || "📦", price: parseFloat(form.price) || 0, stock: parseInt(form.stock) || 0, min_stock: parseInt(form.min_stock) || 5 };
     if (editId) {
       await supabase.from("products").update(data).eq("id", editId);
     } else {

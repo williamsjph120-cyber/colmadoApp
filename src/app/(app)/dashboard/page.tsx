@@ -10,16 +10,18 @@ export default function DashboardPage() {
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    import("@/lib/supabase").then(({ getSupabase }) => {
-      const supabase = getSupabase();
-      Promise.all([
-        supabase.from("sales").select("*").order("created_at", { ascending: false }).limit(50),
-        supabase.from("credits").select("*").order("created_at", { ascending: false }).limit(50),
-        supabase.from("products").select("*"),
-      ]).then(([salesRes, creditsRes, productsRes]) => {
-        if (salesRes.data) setSales(salesRes.data);
-        if (creditsRes.data) setCredits(creditsRes.data);
-        if (productsRes.data) setProducts(productsRes.data);
+    import("@/lib/supabase").then(({ getSupabase, getCurrentUserId }) => {
+      getCurrentUserId().then((userId) => {
+        const supabase = getSupabase();
+        Promise.all([
+          supabase.from("sales").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(50),
+          supabase.from("credits").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(50),
+          supabase.from("products").select("*").eq("user_id", userId),
+        ]).then(([salesRes, creditsRes, productsRes]) => {
+          if (salesRes.data) setSales(salesRes.data);
+          if (creditsRes.data) setCredits(creditsRes.data);
+          if (productsRes.data) setProducts(productsRes.data);
+        });
       });
     });
   }, []);

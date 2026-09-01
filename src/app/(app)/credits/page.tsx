@@ -6,6 +6,7 @@ import type { Credit } from "@/lib/types";
 
 let _s: any = null;
 async function getS() { if (!_s) { const m = await import("@/lib/supabase"); _s = m.getSupabase(); } return _s; }
+async function getUserId() { const m = await import("@/lib/supabase"); return m.getCurrentUserId(); }
 
 export default function CreditsPage() {
   const [credits, setCredits] = useState<Credit[]>([]);
@@ -14,9 +15,10 @@ export default function CreditsPage() {
   const [selectedId, setSelectedId] = useState("");
   const [form, setForm] = useState({ client: "", amount: "", concept: "" });
   const [abonoAmount, setAbonoAmount] = useState("");
+  const [userId, setUserId] = useState("");
 
-  const load = async () => { const supabase = await getS(); const { data } = await supabase.from("credits").select("*").order("created_at", { ascending: false }); if (data) setCredits(data); };
-  useEffect(() => { load(); }, []);
+  const load = async (uid?: string) => { const id = uid || userId; if (!id) return; const supabase = await getS(); const { data } = await supabase.from("credits").select("*").eq("user_id", id).order("created_at", { ascending: false }); if (data) setCredits(data); };
+  useEffect(() => { getUserId().then((id) => { setUserId(id); load(id); }); }, []);
 
   const pending = credits.filter((c) => c.status === "pendiente");
   const paid = credits.filter((c) => c.status === "pagado");
@@ -28,7 +30,7 @@ export default function CreditsPage() {
     const amount = parseFloat(form.amount);
     const supabase = await getS();
     await supabase.from("credits").insert({
-      client: form.client, amount, paid: 0, pending: amount, status: "pendiente", concept: form.concept, date: new Date().toISOString().slice(0, 10),
+      user_id: userId, client: form.client, amount, paid: 0, pending: amount, status: "pendiente", concept: form.concept, date: new Date().toISOString().slice(0, 10),
     });
     setModal(false);
     setForm({ client: "", amount: "", concept: "" });

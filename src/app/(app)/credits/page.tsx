@@ -86,7 +86,7 @@ export default function CreditsPage() {
               </tr>
             </thead>
             <tbody>
-              {credits.map((c) => (
+              {credits.filter((c) => c.status === "pendiente").map((c) => (
                 <tr key={c.id} className="border-t border-gray-100">
                   <td className="px-5 py-3"><span className="font-semibold">{c.client}</span><br /><span className="text-[11px] text-gray-400">{c.concept || ""}</span></td>
                   <td className="px-5 py-3">{formatCurrency(c.amount)}</td>

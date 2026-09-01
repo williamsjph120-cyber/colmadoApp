@@ -51,6 +51,13 @@ export default function CreditsPage() {
     load();
   };
 
+  const del = async (id: string) => {
+    if (!confirm("¿Eliminar este crédito?")) return;
+    const supabase = await getS();
+    await supabase.from("credits").delete().eq("id", id);
+    load();
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-3 gap-4">
@@ -93,7 +100,10 @@ export default function CreditsPage() {
                   <td className="px-5 py-3">{formatCurrency(c.paid)}</td>
                   <td className="px-5 py-3 font-bold" style={{ color: c.pending > 0 ? "#f59e0b" : "#22c55e" }}>{formatCurrency(c.pending)}</td>
                   <td className="px-5 py-3"><span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${c.status === "pagado" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>{c.status}</span></td>
-                  <td className="px-5 py-3">{c.status === "pendiente" && <button onClick={() => openAbono(c)} className="px-3 py-1.5 bg-teal-600 text-white text-xs font-semibold rounded-lg hover:bg-teal-700">Abonar</button>}</td>
+                  <td className="px-5 py-3 flex gap-2">
+                    {c.status === "pendiente" && <button onClick={() => openAbono(c)} className="px-3 py-1.5 bg-teal-600 text-white text-xs font-semibold rounded-lg hover:bg-teal-700">Abonar</button>}
+                    <button onClick={() => del(c.id)} className="px-3 py-1.5 bg-red-500 text-white text-xs font-semibold rounded-lg hover:bg-red-600">Eliminar</button>
+                  </td>
                 </tr>
               ))}
               {credits.length === 0 && <tr><td colSpan={6} className="px-5 py-12 text-center text-gray-400">Sin créditos</td></tr>}

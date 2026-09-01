@@ -99,6 +99,16 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         ))}
       </nav>
 
+      {/* Legal links */}
+      <div className="px-5 py-3 border-t border-white/10">
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-white/30">
+          <Link href="/legal/terminos" onClick={onNavigate} className="hover:text-white/60 transition">Términos</Link>
+          <Link href="/legal/privacidad" onClick={onNavigate} className="hover:text-white/60 transition">Privacidad</Link>
+          <Link href="/legal/cookies" onClick={onNavigate} className="hover:text-white/60 transition">Cookies</Link>
+          <Link href="/legal/aviso" onClick={onNavigate} className="hover:text-white/60 transition">Aviso Legal</Link>
+        </div>
+      </div>
+
       {isAdmin && (
         <div className="p-3 border-t border-white/10">
           <Link

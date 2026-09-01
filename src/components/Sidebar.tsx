@@ -81,7 +81,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 px-4 pt-6 pb-2">
           Cuenta
         </p>
-        {links.slice(5).map((link) => (
+        {links.slice(6).map((link) => (
           <Link
             key={link.href}
             href={link.href}

@@ -41,11 +41,12 @@ export default function CreditsPage() {
     const amount = parseFloat(abonoAmount);
     if (amount <= 0) return;
     const c = credits.find((x) => x.id === selectedId);
-    if (!c || amount > c.pending) return;
-    const newPaid = c.paid + amount;
-    const newPending = c.pending - amount;
+    if (!c || amount > c.pending + 0.01) return;
+    const newPaid = Math.round((c.paid + amount) * 100) / 100;
+    const newPending = Math.round((c.pending - amount) * 100) / 100;
+    const isPaid = newPending <= 0.01;
     const supabase = await getS();
-    await supabase.from("credits").update({ paid: newPaid, pending: newPending, status: newPending <= 0 ? "pagado" : "pendiente" }).eq("id", selectedId);
+    await supabase.from("credits").update({ paid: newPaid, pending: isPaid ? 0 : newPending, status: isPaid ? "pagado" : "pendiente" }).eq("id", selectedId);
     setAbonoModal(false);
     load();
   };
@@ -122,6 +123,7 @@ export default function CreditsPage() {
             <h2 className="font-bold text-lg">Abonar</h2>
             <p className="text-sm text-gray-400">Pendiente: <strong className="text-amber-500">{formatCurrency(credits.find((c) => c.id === selectedId)?.pending || 0)}</strong></p>
             <div><label className="block text-sm font-semibold mb-1">Monto del abono</label><input type="number" step="0.01" value={abonoAmount} onChange={(e) => setAbonoAmount(e.target.value)} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-teal-500" /></div>
+              <button onClick={() => { const c = credits.find((x) => x.id === selectedId); if (c) setAbonoAmount(String(c.pending)); }} className="text-xs text-teal-600 font-semibold hover:underline mt-1">Pagar todo ({formatCurrency(credits.find((c) => c.id === selectedId)?.pending || 0)})</button>
             <div className="flex gap-3 pt-2">
               <button onClick={() => setAbonoModal(false)} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold hover:bg-gray-50">Cancelar</button>
               <button onClick={applyAbono} className="flex-1 py-2.5 bg-teal-600 text-white rounded-xl text-sm font-semibold hover:bg-teal-700">Abonar</button>

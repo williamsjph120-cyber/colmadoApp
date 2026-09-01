@@ -20,13 +20,15 @@ export default function LoginPage() {
     const supabase = getSupabase();
 
     if (isRegister) {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) {
         setError(error.message);
         setLoading(false);
         return;
       }
-      await supabase.from("subscriptions").insert({ user_id: (await supabase.auth.getUser()).data.user?.id, plan: "gratis", status: "activo" });
+      if (data.user) {
+        await supabase.from("subscriptions").insert({ user_id: data.user.id, plan: "gratis", status: "activo" });
+      }
       router.replace("/dashboard");
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });

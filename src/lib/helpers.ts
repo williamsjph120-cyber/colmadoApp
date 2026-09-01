@@ -5,13 +5,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatCurrency(amount: number): string {
-  return `RD$${amount.toLocaleString("es-DO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+export function formatCurrency(amount: number | null | undefined): string {
+  const val = amount ?? 0;
+  return `RD$${val.toLocaleString("es-DO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-export function formatDate(dateStr: string): string {
+export function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return "—";
   const d = new Date(dateStr + "T00:00:00");
+  if (isNaN(d.getTime())) return "—";
   return d.toLocaleDateString("es-DO", { day: "numeric", month: "short", year: "numeric" });
 }
 

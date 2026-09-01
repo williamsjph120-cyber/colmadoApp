@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const ADMIN_EMAIL = "williamsjph120@gmail.com";
-
 interface UserWithPlan {
   user_id: string;
   email: string;
@@ -28,7 +26,12 @@ export default function AdminPage() {
     const check = async () => {
       const supabase = await getS();
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.email !== ADMIN_EMAIL) {
+      if (!user) {
+        router.replace("/login");
+        return;
+      }
+      const { data: adminCheck } = await supabase.rpc("is_admin");
+      if (!adminCheck) {
         router.replace("/dashboard");
         return;
       }

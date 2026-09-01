@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { formatCurrency } from "@/lib/helpers";
 import type { Sale, Credit, Product } from "@/lib/types";
+
+let _s: any = null;
+async function getS() { if (!_s) { const m = await import("@/lib/supabase"); _s = m.getSupabase(); } return _s; }
 
 export default function ReportsPage() {
   const [sales, setSales] = useState<Sale[]>([]);
@@ -11,15 +13,17 @@ export default function ReportsPage() {
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    Promise.all([
-      supabase.from("sales").select("*"),
-      supabase.from("credits").select("*"),
-      supabase.from("products").select("*"),
-    ]).then(([s, c, p]) => {
-      if (s.data) setSales(s.data);
-      if (c.data) setCredits(c.data);
-      if (p.data) setProducts(p.data);
-    });
+    getS().then((supabase) =>
+      Promise.all([
+        supabase.from("sales").select("*"),
+        supabase.from("credits").select("*"),
+        supabase.from("products").select("*"),
+      ]).then(([s, c, p]) => {
+        if (s.data) setSales(s.data);
+        if (c.data) setCredits(c.data);
+        if (p.data) setProducts(p.data);
+      })
+    );
   }, []);
 
   const days = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];

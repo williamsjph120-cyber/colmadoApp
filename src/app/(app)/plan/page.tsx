@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { formatCurrency } from "@/lib/helpers";
 import type { Subscription } from "@/lib/types";
+
+let _s: any = null;
+async function getS() { if (!_s) { const m = await import("@/lib/supabase"); _s = m.getSupabase(); } return _s; }
 
 const PLANS = [
   { id: "gratis", name: "Gratis", price: 0, features: ["Hasta 50 productos", "Inventario básico", "POS simple", "Reportes básicos"] },
@@ -24,15 +26,17 @@ export default function PlanPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        supabase.from("subscriptions").select("*").eq("user_id", user.id).single().then(({ data }) => {
-          setSub(data);
+    getS().then((supabase) => {
+      supabase.auth.getUser().then(({ data: { user } }: any) => {
+        if (user) {
+          supabase.from("subscriptions").select("*").eq("user_id", user.id).single().then(({ data }: any) => {
+            setSub(data);
+            setLoading(false);
+          });
+        } else {
           setLoading(false);
-        });
-      } else {
-        setLoading(false);
-      }
+        }
+      });
     });
   }, []);
 

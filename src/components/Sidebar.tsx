@@ -89,7 +89,8 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       <div className="p-3 border-t border-white/10">
         <button
           onClick={async () => {
-            const { supabase } = await import("@/lib/supabase");
+            const { getSupabase } = await import("@/lib/supabase");
+            const supabase = getSupabase();
             await supabase.auth.signOut();
             window.location.href = "/login";
           }}

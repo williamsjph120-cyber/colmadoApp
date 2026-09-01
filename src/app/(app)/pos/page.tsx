@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { formatCurrency } from "@/lib/helpers";
 import type { Product, CartItem } from "@/lib/types";
 import { ReceiptPrinter } from "@/components/ReceiptPrinter/ReceiptPrinter";
+
+let _s: any = null;
+async function getS() { if (!_s) { const m = await import("@/lib/supabase"); _s = m.getSupabase(); } return _s; }
 
 export default function POSPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -17,9 +19,9 @@ export default function POSPage() {
   const [clientConcept, setClientConcept] = useState("");
 
   useEffect(() => {
-    supabase.from("products").select("*").order("name").then(({ data }) => {
+    getS().then((supabase) => supabase.from("products").select("*").order("name").then(({ data }: any) => {
       if (data) setProducts(data);
-    });
+    }));
   }, []);
 
   const categories = ["todos", ...Array.from(new Set(products.map((p) => p.category)))];
@@ -53,6 +55,7 @@ export default function POSPage() {
 
   const processCheckout = async (method: string, clientNameVal?: string, conceptVal?: string) => {
     if (cart.length === 0) return;
+    const supabase = await getS();
 
     const { data: saleData, error: saleError } = await supabase
       .from("sales")

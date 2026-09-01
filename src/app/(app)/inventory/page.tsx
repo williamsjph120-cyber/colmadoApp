@@ -1,9 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { formatCurrency } from "@/lib/helpers";
 import type { Product } from "@/lib/types";
+
+let _supabase: any = null;
+
+async function getS() {
+  if (!_supabase) {
+    const m = await import("@/lib/supabase");
+    _supabase = m.getSupabase();
+  }
+  return _supabase;
+}
 
 export default function InventoryPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -12,7 +21,7 @@ export default function InventoryPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", category: "abarrotes", emoji: "📦", price: "", stock: "", min_stock: "5" });
 
-  const load = () => supabase.from("products").select("*").order("name").then(({ data }) => { if (data) setProducts(data); });
+  const load = async () => { const supabase = await getS(); const { data } = await supabase.from("products").select("*").order("name"); if (data) setProducts(data); };
 
   useEffect(() => { load(); }, []);
 
@@ -28,6 +37,7 @@ export default function InventoryPage() {
 
   const save = async () => {
     if (!form.name) return;
+    const supabase = await getS();
     const data = { name: form.name, category: form.category, emoji: form.emoji || "📦", price: parseFloat(form.price) || 0, stock: parseInt(form.stock) || 0, min_stock: parseInt(form.min_stock) || 5 };
     if (editId) {
       await supabase.from("products").update(data).eq("id", editId);
@@ -40,6 +50,7 @@ export default function InventoryPage() {
 
   const del = async (id: string) => {
     if (!confirm("¿Eliminar este producto?")) return;
+    const supabase = await getS();
     await supabase.from("products").delete().eq("id", id);
     load();
   };

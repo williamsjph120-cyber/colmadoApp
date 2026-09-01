@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import Sidebar from "@/components/Sidebar";
+
+export const dynamic = "force-dynamic";
 
 const titles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -21,9 +22,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) router.replace("/login");
-      else setLoading(false);
+    import("@/lib/supabase").then(({ getSupabase }) => {
+      const supabase = getSupabase();
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session) router.replace("/login");
+        else setLoading(false);
+      });
     });
   }, [router]);
 

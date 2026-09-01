@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { formatCurrency } from "@/lib/helpers";
 import type { Credit } from "@/lib/types";
+
+let _s: any = null;
+async function getS() { if (!_s) { const m = await import("@/lib/supabase"); _s = m.getSupabase(); } return _s; }
 
 export default function CreditsPage() {
   const [credits, setCredits] = useState<Credit[]>([]);
@@ -13,7 +15,7 @@ export default function CreditsPage() {
   const [form, setForm] = useState({ client: "", amount: "", concept: "" });
   const [abonoAmount, setAbonoAmount] = useState("");
 
-  const load = () => supabase.from("credits").select("*").order("created_at", { ascending: false }).then(({ data }) => { if (data) setCredits(data); });
+  const load = async () => { const supabase = await getS(); const { data } = await supabase.from("credits").select("*").order("created_at", { ascending: false }); if (data) setCredits(data); };
   useEffect(() => { load(); }, []);
 
   const pending = credits.filter((c) => c.status === "pendiente");
@@ -24,6 +26,7 @@ export default function CreditsPage() {
   const saveCredit = async () => {
     if (!form.client || !form.amount) return;
     const amount = parseFloat(form.amount);
+    const supabase = await getS();
     await supabase.from("credits").insert({
       client: form.client, amount, paid: 0, pending: amount, status: "pendiente", concept: form.concept, date: new Date().toISOString().slice(0, 10),
     });
@@ -41,6 +44,7 @@ export default function CreditsPage() {
     if (!c || amount > c.pending) return;
     const newPaid = c.paid + amount;
     const newPending = c.pending - amount;
+    const supabase = await getS();
     await supabase.from("credits").update({ paid: newPaid, pending: newPending, status: newPending <= 0 ? "pagado" : "pendiente" }).eq("id", selectedId);
     setAbonoModal(false);
     load();

@@ -13,7 +13,6 @@ const links = [
   { href: "/inventory", icon: "📦", label: "Inventario" },
   { href: "/credits", icon: "💰", label: "Créditos" },
   { href: "/reports", icon: "📈", label: "Reportes" },
-  { href: "/sales", icon: "🧾", label: "Historial de Ventas" },
   { href: "/plan", icon: "💳", label: "Mi Plan" },
 ];
 
@@ -61,7 +60,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 px-4 pt-6 pb-2">
           Operaciones
         </p>
-        {links.slice(1, 6).map((link) => (
+        {links.slice(1, 5).map((link) => (
           <Link
             key={link.href}
             href={link.href}
@@ -81,7 +80,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 px-4 pt-6 pb-2">
           Cuenta
         </p>
-        {links.slice(6).map((link) => (
+        {links.slice(5).map((link) => (
           <Link
             key={link.href}
             href={link.href}

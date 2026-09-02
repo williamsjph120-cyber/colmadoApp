@@ -11,6 +11,7 @@ async function getUserId() { const m = await import("@/lib/supabase"); return m.
 const CATEGORIES = [
   { id: "abarrotes", label: "Abarrotes", icon: "🏪" },
   { id: "bebidas", label: "Bebidas", icon: "🥤" },
+  { id: "alcohol", label: "Alcohol", icon: "🍺" },
   { id: "lacteos", label: "Lácteos", icon: "🥛" },
   { id: "carnes", label: "Carnes", icon: "🍗" },
   { id: "frutas", label: "Frutas y Verduras", icon: "🥬" },
@@ -31,7 +32,7 @@ const UNITS = [
 ];
 
 const CATEGORY_EMOJIS: Record<string, string> = {
-  abarrotes: "🏪", bebidas: "🥤", lacteos: "🥛", carnes: "🍗",
+  abarrotes: "🏪", bebidas: "🥤", alcohol: "🍺", lacteos: "🥛", carnes: "🍗",
   frutas: "🥬", limpieza: "🧹", higiene: "🪥", snacks: "🍿", otros: "📦",
 };
 
@@ -152,7 +153,7 @@ export default function InventoryPage() {
               {/* Categoría */}
               <div>
                 <label className="block text-sm font-semibold mb-1.5">Categoría</label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-5 gap-2">
                   {CATEGORIES.map((c) => (
                     <button key={c.id} type="button" onClick={() => setForm({ ...form, category: c.id })} className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-xs font-semibold transition ${form.category === c.id ? "border-teal-500 bg-teal-50 text-teal-700" : "border-gray-200 hover:border-gray-300"}`}>
                       <span>{c.icon}</span> {c.label}

@@ -40,6 +40,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           return;
         }
 
+        if (pathname === "/plan") {
+          setLoading(false);
+          return;
+        }
+
         supabase.from("subscriptions").select("*").eq("user_id", session.user.id).single().then(({ data: sub }: any) => {
           if (!sub) {
             setAccessDenied(true);
@@ -58,7 +63,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         });
       });
     });
-  }, [router]);
+  }, [router, pathname]);
 
   if (loading) {
     return (

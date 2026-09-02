@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { formatCurrency } from "@/lib/helpers";
-import type { Product } from "@/lib/types";
+import type { Product, Subscription, PlanType } from "@/lib/types";
+import { PLAN_LIMITS } from "@/lib/types";
 
 let _supabase: any = null;
 async function getS() { if (!_supabase) { const m = await import("@/lib/supabase"); _supabase = m.getSupabase(); } return _supabase; }
@@ -43,13 +44,35 @@ export default function InventoryPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", category: "abarrotes", unit: "unidad", emoji: "", price: "", stock: "", min_stock: "5" });
   const [userId, setUserId] = useState("");
+  const [sub, setSub] = useState<Subscription | null>(null);
 
   const load = async (uid?: string) => { const id = uid || userId; if (!id) return; const supabase = await getS(); const { data } = await supabase.from("products").select("*").eq("user_id", id).order("name"); if (data) setProducts(data); };
-  useEffect(() => { getUserId().then((id) => { setUserId(id); load(id); }); }, []);
+
+  useEffect(() => {
+    getUserId().then((id) => {
+      setUserId(id);
+      load(id);
+      getS().then((supabase) => {
+        supabase.from("subscriptions").select("*").eq("user_id", id).single().then(({ data }: any) => {
+          if (data) setSub(data);
+        });
+      });
+    });
+  }, []);
+
+  const currentPlan: PlanType = (sub?.plan as PlanType) || "basico";
+  const limit = PLAN_LIMITS[currentPlan].maxProducts;
+  const productCount = products.length;
+  const atLimit = limit > 0 && productCount >= limit;
 
   const filtered = products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()) || p.category.includes(search.toLowerCase()));
 
-  const openNew = () => { setEditId(null); setForm({ name: "", category: "abarrotes", unit: "unidad", emoji: "", price: "", stock: "", min_stock: "5" }); setModal(true); };
+  const openNew = () => {
+    if (atLimit) return;
+    setEditId(null);
+    setForm({ name: "", category: "abarrotes", unit: "unidad", emoji: "", price: "", stock: "", min_stock: "5" });
+    setModal(true);
+  };
 
   const openEdit = (p: Product) => {
     setEditId(p.id);
@@ -82,10 +105,21 @@ export default function InventoryPage() {
     <div className="space-y-4">
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <h3 className="font-bold text-sm">Inventario ({products.length} productos)</h3>
+          <div>
+            <h3 className="font-bold text-sm">Inventario ({productCount} productos)</h3>
+            <p className="text-[11px] text-gray-400 mt-0.5">
+              Plan {PLAN_LIMITS[currentPlan].label} — {limit > 0 ? `${productCount}/${limit} productos` : "Productos ilimitados"}
+            </p>
+          </div>
           <div className="flex gap-2 w-full sm:w-auto">
             <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar producto..." className="px-3 py-2 border border-gray-200 rounded-lg text-sm flex-1 sm:w-64 focus:outline-none focus:border-teal-500" />
-            <button onClick={openNew} className="px-4 py-2 bg-teal-600 text-white text-sm font-semibold rounded-lg hover:bg-teal-700 transition whitespace-nowrap">+ Nuevo</button>
+            <button
+              onClick={openNew}
+              disabled={atLimit}
+              className={`px-4 py-2 text-white text-sm font-semibold rounded-lg transition whitespace-nowrap ${atLimit ? "bg-gray-400 cursor-not-allowed" : "bg-teal-600 hover:bg-teal-700"}`}
+            >
+              {atLimit ? "Límite alcanzado" : "+ Nuevo"}
+            </button>
           </div>
         </div>
         <div className="overflow-x-auto">

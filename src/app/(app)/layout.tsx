@@ -14,7 +14,6 @@ const titles: Record<string, string> = {
   "/inventory": "Inventario",
   "/credits": "Créditos",
   "/reports": "Reportes",
-  "/sales": "Historial de Ventas",
   "/plan": "Mi Plan",
   "/admin": "Admin",
 };
@@ -27,6 +26,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
+    setAccessDenied(false);
+    setLoading(true);
     import("@/lib/supabase").then(({ getSupabase }) => {
       const supabase = getSupabase();
       supabase.auth.getSession().then(({ data: { session } }) => {

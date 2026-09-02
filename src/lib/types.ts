@@ -79,7 +79,7 @@ export interface CartItem {
 export type PlanType = "basico" | "estandar" | "premium";
 
 export const PLAN_LIMITS: Record<PlanType, { maxProducts: number; price: number; label: string }> = {
-  basico: { maxProducts: 50, price: 500, label: "Básico" },
-  estandar: { maxProducts: 150, price: 800, label: "Estándar" },
+  basico: { maxProducts: 60, price: 500, label: "Básico" },
+  estandar: { maxProducts: 200, price: 800, label: "Estándar" },
   premium: { maxProducts: -1, price: 1200, label: "Premium" },
 };

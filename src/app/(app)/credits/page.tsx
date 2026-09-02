@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatCurrency } from "@/lib/helpers";
+import { formatCurrency, getLocalDate } from "@/lib/helpers";
 import type { Credit } from "@/lib/types";
 
 let _s: any = null;
@@ -30,7 +30,7 @@ export default function CreditsPage() {
     const amount = parseFloat(form.amount);
     const supabase = await getS();
     await supabase.from("credits").insert({
-      user_id: userId, client: form.client, amount, paid: 0, pending: amount, status: "pendiente", concept: form.concept, date: new Date().toISOString().slice(0, 10),
+      user_id: userId, client: form.client, amount, paid: 0, pending: amount, status: "pendiente", concept: form.concept, date: getLocalDate(),
     });
     setModal(false);
     setForm({ client: "", amount: "", concept: "" });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatCurrency } from "@/lib/helpers";
+import { formatCurrency, getLocalDate } from "@/lib/helpers";
 import type { Product, CartItem } from "@/lib/types";
 import { ReceiptPrinter } from "@/components/ReceiptPrinter/ReceiptPrinter";
 
@@ -70,7 +70,7 @@ export default function POSPage() {
       .from("sales")
       .insert({
         user_id: userId,
-        date: new Date().toISOString().slice(0, 10),
+        date: getLocalDate(),
         subtotal,
         tax,
         total,
@@ -114,7 +114,7 @@ export default function POSPage() {
         status: "pendiente",
         concept: conceptVal,
         sale_id: saleData.id,
-        date: new Date().toISOString().slice(0, 10),
+        date: getLocalDate(),
       });
     }
 

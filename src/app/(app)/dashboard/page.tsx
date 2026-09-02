@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatCurrency, formatDate } from "@/lib/helpers";
+import { formatCurrency, formatDate, getLocalDate } from "@/lib/helpers";
 import type { Sale, Credit, Product } from "@/lib/types";
 
 export default function DashboardPage() {
@@ -26,7 +26,7 @@ export default function DashboardPage() {
     });
   }, []);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getLocalDate();
   const todaySales = sales.filter((s) => s.date === today);
   const todayTotal = todaySales.reduce((sum, s) => sum + s.total, 0);
   const pendingCredits = credits.filter((c) => c.status === "pendiente");

@@ -13,6 +13,7 @@ export default function POSPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [category, setCategory] = useState("todos");
+  const [search, setSearch] = useState("");
   const [receiptStage, setReceiptStage] = useState<"idle" | "processing" | "printing" | "complete">("idle");
   const [lastSaleTotal, setLastSaleTotal] = useState(0);
   const [lastCart, setLastCart] = useState<CartItem[]>([]);
@@ -34,7 +35,11 @@ export default function POSPage() {
   }, []);
 
   const categories = ["todos", ...Array.from(new Set(products.map((p) => p.category)))];
-  const filtered = category === "todos" ? products : products.filter((p) => p.category === category);
+  const filtered = products.filter((p) => {
+    const matchCategory = category === "todos" || p.category === category;
+    const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase());
+    return matchCategory && matchSearch;
+  });
 
   const addToCart = (product: Product) => {
     if (product.stock <= 0) return;
@@ -169,6 +174,22 @@ export default function POSPage() {
           ))}
         </div>
 
+        <div className="mb-4">
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar producto..."
+              className="w-full pl-9 pr-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-teal-500 transition"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm">✕</button>
+            )}
+          </div>
+        </div>
+
         <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3">
           {filtered.map((p) => (
             <button
@@ -259,8 +280,13 @@ export default function POSPage() {
                           <span className="truncate flex-1">{item.emoji} {item.name} x{item.qty}</span>
                           <span className="font-semibold ml-2">{formatCurrency(item.price * item.qty)}</span>
                         </div>
-                      ))}
-                    </div>
+          ))}
+          {filtered.length === 0 && (
+            <div className="col-span-full text-center py-12 text-gray-400 text-sm">
+              {search ? `No se encontraron productos para "${search}"` : "Sin productos en esta categoría"}
+            </div>
+          )}
+        </div>
 
                     <div className="border-t border-dashed border-gray-300" />
 
